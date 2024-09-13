@@ -7,8 +7,7 @@
 @section('titulo', 'Usuários')
 
 
-@se
-ction('conteudo')
+@section('conteudo')
 <p>
     <a href="{{ route('usuarios.cadastrar') }}">Cadastrar usuário</a>
 </p>
@@ -28,7 +27,8 @@ ction('conteudo')
     @foreach ($usuarios as $usuario)
     <tr>
         <td>{{ $usuario->id }}</td>
-        <td>{{ $usuario->name }}</td>
+        <td>{{ $usuario->name }}</td> {{--acessar objeto --}}
+         <td>{{ $usuario['name'] }}</td> {{--acessar vetor --}}
         <td>{{ $usuario->email }}</td>
         <td>{{ $usuario->admin ? 'Sim' : 'Não' }}</td>
         <td><a href="{{ route('usuarios.apagar', $usuario->id) }}">Apagar</a></td>
