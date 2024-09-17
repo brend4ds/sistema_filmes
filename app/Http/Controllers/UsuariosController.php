@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Usuarios;
+use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -11,7 +11,7 @@ class UsuariosController extends Controller
 {
     public function index()
     {
-        $usuarios = Usuarios::orderBy('name', 'asc')->get();
+        $usuarios = Usuario::orderBy('name', 'asc')->get();
 
         return view('usuarios.index', ['usuarios' => $usuarios, 'pagina' => 'usuarios']);
     }
@@ -33,7 +33,7 @@ class UsuariosController extends Controller
 
         $dados['password'] = Hash::make($dados['password']);
 
-        Usuarios::create($dados);
+        Usuario::create($dados);
 
         return redirect()->route('usuarios');
     }
@@ -64,13 +64,13 @@ class UsuariosController extends Controller
         Auth::logout();
         return redirect()->route('index');
     }
-    public function apagar(usuarios $usuario) {
+    public function apagar(usuario $usuario) {
         return view('usuarios.apagar', [
             'usuario' => $usuario,
         ]);
     }
 
-    public function deletar(usuarios $usuario) {
+    public function deletar(usuario $usuario) {
         $usuario->delete();
         return redirect()->route('usuarios');
     }
