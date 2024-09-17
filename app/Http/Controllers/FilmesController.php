@@ -2,74 +2,89 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Filme;
+use App\Models\Filmes;
 use Illuminate\Http\Request;
 
 class FilmesController extends Controller
 {
-    public function index(){
-        $dados = Filme::all();
-        //dd($dados); funcao mais import do laravel
+    public function index() {
+        $dados = Filmes::all();
         return view('filmes.index', [
             'filmes' => $dados,
         ]);
     }
-    public function cadastrar(){
+
+    public function cadastrar() {
         return view('filmes.cadastrar');
     }
 
-    public function gravar(Request $form){//acessado animias.cadastrar via post, submetendo o form
-        //filmes(nome da pasta imagem(nome do disco q vai armazenar)
-        $img = $form->file('imagem')->store('filmes', 'imagens');
-       
-
-        dd($form);
-        $dados = $form->validate([ //validar os dados antes do create
-            //{{-- nome, sinopse, ano, categoria, imagem da capa, link do trailer no YouTube --}}
-            'nome' => 'required',//campo nome temq  ser obrigatorio  
-            'sinopse' => 'required', //campo idade temq ser obrig e inteiro
-            'ano' => 'required|integer',
+    public function gravar(Request $form)
+    {
+        $dados = $form->validate([
+            'nome' => 'required|min:3',
+            'sinopse' => 'required|min:3',
+            'ano' => 'required',
             'categoria' => 'required',
-            'link' => 'required'
+            'link' => 'required|min:3',
+            'imagem' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-
-        $dados['imagem'] = $img;
-
-        Filme::create($dados);
+    
+        if ($form->hasFile('imagem')) {
+            $img = $form->file('imagem')->store('filmes', 'public');
+            $dados['imagem'] = $img;
+        } else {
+            $dados['imagem'] = null; 
+        }
         
-        return redirect()->route('filmes');
+       
+        Filmes::create($dados);
+        
+        
+        return redirect()->route('filmes')->with('image', $img);
     }
 
-    public function apagar( Filme $filme){//mostra na tela a confirmacao
+    public function apagar(Filmes $filme) {
         return view('filmes.apagar', [
-            'Filme' => $filme
+            'filme' => $filme,
         ]);
     }
 
-    public function deletar(Filme $filme){
+    public function deletar(Filmes $filme) {
         $filme->delete();
         return redirect()->route('filmes');
     }
 
-    public function editar(Filme $filme) {//apaga do banco
-        return view('filmes/editar', [
-            'Filme' => $filme
+    
+    public function editar(Filmes $filme) {
+        return view('filmes.editar', [
+            'filme' => $filme,
         ]);
     }
 
-    public function editarGravar(Request $form, Filme $filme){
+    
+    public function editarGravar(Request $form, Filmes $filme) {
         $dados = $form->validate([
-        //{{-- nome, sinopse, ano, categoria, imagem da capa, link do trailer no YouTube --}}
-        'nome' => 'required|max:255',
-        'sinopse' => 'sinopse',
-        'ano' => 'required|integer',
-        'categoria' => 'required',
-        'link' => 'required'
+            'nome' => 'required|min:3',
+            'sinopse' => 'required|min:3',
+            'ano' => 'required|date',
+            'categoria' => 'required|min:3',
+            'link' => 'required|url',
+            'imagem' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-
-        $filme->fill($dados);
-        $filme->save();
-        return redirect()->route('filmes');
+    
+        
+        if ($form->hasFile('imagem')) {
+            
+            if ($filme->imagem) {
+                \Storage::disk('public')->delete($filme->imagem);
+            }
+            $img = $form->file('imagem')->store('filmes', 'public');
+            $dados['imagem'] = $img;
+        }
+        
+        
+        $filme->update($dados);
+        
+        return redirect()->route('filmes')->with('success', 'Filme atualizado com sucesso!');
     }
-
 }
